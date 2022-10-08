@@ -3,6 +3,7 @@ const shortId = require("shortid")
 const validUrl = require("valid-url")
 const redis = require("redis");
 const {promisify} = require("util");
+const { model } = require("mongoose");
 
 //Connect to redis
 // we make client of name redesclient
@@ -49,10 +50,10 @@ const createShortUrl = async function (req, res) {
             let urlDetails = await urlModel.create({ longUrl: longUrl, shortUrl: shortUrl, urlCode: urlCode })
             await SET_ASYNC(`${urlCode}`,3600, JSON.stringify(urlDetails))
             let filter = { urlCode: urlDetails.urlCode, longUrl: urlDetails.longUrl, shortUrl: urlDetails.shortUrl }
-            return res.status(201).send({ status: true, data: filter })
+            return res.status(201).send({ status: true,msg: "shortUrl is created successfully...", data: filter })
         }
 
-        return res.status(200).send({ status: true, data: checkUrl })
+        return res.status(200).send({ status: true,msg:"shortUrl is already present...", data: checkUrl })
 
     } catch (err) {
         return res.status(500).send({ status: false, message: err.message })
@@ -63,7 +64,7 @@ const getShortUrl = async function (req, res) {
     try {
         let urlCode = req.params.urlCode
 
-        if (!urlCode) return res.status(400).send({ status: false, message: "urlCode is mandatory" })
+        // if (!urlCode) return res.status(400).send({ status: false, message: "urlCode is mandatory" })
 
         let cachedData = await GET_ASYNC(`${urlCode}`)
         if (cachedData) {
@@ -84,3 +85,4 @@ const getShortUrl = async function (req, res) {
 }
 
 module.exports = { createShortUrl, getShortUrl };
+
